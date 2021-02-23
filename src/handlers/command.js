@@ -1,16 +1,13 @@
-require("dotenv").config();
-const { Client } = require("discord.js");
 const fs = require("fs");
-const client = new Client();
-
-client.on("ready", () => {
-    fs.readdir("./commands/", (error, files) => {
+module.exports = (client) => {
+	fs.readdir("./src/commands/", (error, files) => {
         if (error) return console.log(error);
         files.forEach(file => {
             if (!file.endsWith(".js")) return;
-            let fileProp = require("./commands/" + file);
-            // client.api.applications(client.user.id).guilds(GUILD_ID)
-            client.api.applications(client.user.id).guilds("770319043587866675").commands.post({
+            let fileProp = require(`../commands/${file}`);
+			// ! USE THIS INSTEAD IF YOU WANT TO ENABLE YOUR COMMANDS GLOBALLY !
+            // client.api.applications(client.user.id).commands.post({ ...
+            client.api.applications(client.user.id).guilds(process.env.GUILD_ID).commands.post({
                 data: {
                     name: fileProp.help.name,
                     description: fileProp.help.description,
@@ -22,8 +19,7 @@ client.on("ready", () => {
                 const args = interaction.data.options;
                 if (command == fileProp.help.name.toLowerCase()) fileProp.run(client, interaction, args);
             });
+			console.log(`Loaded command: ${fileProp.help.name}`);
         });
     });
-});
-
-client.login(process.env.TOKEN);
+};
